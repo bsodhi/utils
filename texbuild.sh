@@ -18,31 +18,37 @@ if [ $# -eq 0 ]; then
 fi
 
 F=$1
-FN=${F%.tex}
+FN=`basename -s .tex $1`
+
+BD=`pwd`/build
 echo Processing $FN.tex. Intermediate generated files and logs will be \
-	written to `pwd`/build directory.
-if [ ! -d build ]; then
+	written to $BD directory.
+if [ ! -d $BD ]; then
     echo "Creating build directory ..."
-	mkdir build
+	mkdir $BD
 fi
 
 echo Compiling latex file ...
 # Compile the LATEX file
-latex -interaction=nonstopmode -output-directory=./build $1 > /dev/null
+latex -interaction=nonstopmode -output-directory=$BD $1 > /dev/null
 
 echo Processing bib file ...
 # Generate the bibliography
-bibtex ./build/$FN.aux > /dev/null
+bibtex $BD/$FN.aux > /dev/null
 
 echo Re-compiling latex file to resolve bib references ...
 # Recompile LATEX file to resolve the bibliography references.
-latex -interaction=nonstopmode -output-directory=./build $1 > /dev/null
+latex -interaction=nonstopmode -output-directory=$BD $1 > /dev/null
 
 # Do it again to generate the final dvi output
-latex -interaction=nonstopmode -output-directory=./build $1 > /dev/null
+latex -interaction=nonstopmode -output-directory=$BD $1 > /dev/null
 
 echo Convertin dvi to pdf ...
 # Convert dvi file to pdf
-dvipdf ./build/$FN.dvi
+dvipdf $BD/$FN.dvi
 
-echo Done.
+echo Launching evince to view output file: `pwd`/$FN.pdf ...
+
+evince `pwd`/$FN.pdf
+
+echo Build completed.
